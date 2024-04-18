@@ -11,7 +11,7 @@ class StaticBoardCellContent(Enum):
     EMPTY = 0
     BOMB = 1
 
-boardWidth, boardHeight = (12,12)
+boardWidth, boardHeight = (18,12)
 bombCount = 10
 endGame = False
 
@@ -55,23 +55,25 @@ remainingBombs = 0
 def InitializeStaticBoard():
     remainingBombs = bombCount
     # staticBoard  = [[StaticBoardCellContent.EMPTY]*boardWidth]*boardHeight 
-    staticBoard = [[StaticBoardCellContent.EMPTY for i in range(boardHeight)] for j in range(boardWidth)]
+    staticBoard = [[StaticBoardCellContent.EMPTY for i in range(boardWidth)] for j in range(boardHeight)]
     
     # Randomly pick cell; if empty, fill it and decrease
     # Dummy vals for testing purposes!
     staticBoard[1][4] = StaticBoardCellContent.BOMB
+    staticBoard[1][5] = StaticBoardCellContent.BOMB
+    staticBoard[1][6] = StaticBoardCellContent.BOMB
     staticBoard[5][5] = StaticBoardCellContent.BOMB
     return staticBoard
 
 
 def InitializeInteractBoard():
-    interactBoard = [[InteractBoardCellState.HIDDEN]*boardWidth]*boardHeight
+    interactBoard = [[InteractBoardCellState.HIDDEN for i in range(boardWidth)] for j in range(boardHeight)]
     return interactBoard
 
 def PromptUserAction():
     stacyFakename = 0
     #Need input from user: action type, cell location.
-    #call appropriate function as.... appropriate
+    #call appropriate of Reveal or Flag functions as.... appropriate
     #
 
 def RevealInteractBoardCell():
@@ -120,9 +122,10 @@ def RefreshUserScreen():
 
 
 def UpdateVisualBoard():
-    interactBoard = [[' ']*boardWidth]*boardHeight
-    for i in boardWidth:
-        for j in boardHeight:
+    interactBoard = [[' ' for i in range(boardWidth)] for j in range(boardHeight)]
+
+    for row in range(boardHeight):
+        for column in range(boardWidth):
             eeee = 1
     # build visualBoard
     # Iterate through stateBoard
@@ -135,8 +138,8 @@ def UpdateVisualBoard():
 
 def RevealBoard():
     #For Game Win/Lose to show entire board
-    for i in boardWidth:
-        for j in boardHeight:
+    for row in range(boardHeight):
+        for column in range(boardWidth):
             placingholder = 1
             #Treat Hidden as Revealed
             #What to display for incorrectly flagged tile?
@@ -145,14 +148,14 @@ def RevealBoard():
 def PrintVisualBoard():
     global visualBoard
     #print out board visually
-    print(' ', end='')
-    for x in range(boardWidth):
-        print('___ ', end='')
-    print()
-    for row in staticBoard:
-        print('|', end='')
-        for cell in row:
-            wow = 0
+    # print(' ', end='')
+    # for x in range(boardWidth):
+    #     print('___ ', end='')
+    # print()
+    # for row in staticBoard:
+    #     print('|', end='')
+    #     for cell in row:
+    #         wow = 0
     
     #   A   B   C
     #  ___________
@@ -164,11 +167,10 @@ def PrintVisualBoard():
 def PrintStaticBoard():
     global staticBoard
     PrintBoardTopBorder()
-    for row in staticBoard:
+    for row in range(boardHeight):
         print('|', end='')
-        for cell in row:
-            #need to convert from enum
-            print(f' {GetStaticBoardCellIcon(cell)} |', end='')
+        for column in range(boardWidth):
+            print(f' {GetStaticBoardCellIcon(staticBoard[row][column])} |', end='')
         print()
     PrintBoardBottomBorder()
     PrintXAxisLabels()
@@ -189,7 +191,10 @@ def PrintXAxisLabels():
     print(' ', end='')
     for x in range(boardWidth):
         label = f' {x+1}  '
-        if(x>9):
+        if(x+1 > 9):
+            label = label[:-1]
+        if(x+1 > 99):
+            #What are you doing at this point? How big is your screen??
             label = label[1:]
         print(label, end='')
     
