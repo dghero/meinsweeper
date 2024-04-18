@@ -98,6 +98,14 @@ def FlagInteractBoardCell():
 messageBuffer = ["Welcome to Meinsweeper!"]
 visualBoard = []
 
+def RefreshUserScreen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+    # Should board come first or last? 
+    PrintVisualBoard()
+    #print messages
+
+## Message Update Actions
+
 def OverwriteAndDisplayMessage(messageText):
     messageBuffer.clear()
     messageBuffer.append(messageText)
@@ -113,13 +121,7 @@ def AppendMessage(messageText):
 def ClearMessageBuffer():
     messageBuffer.clear()
 
-
-def RefreshUserScreen():
-    os.system('cls' if os.name == 'nt' else 'clear')
-    # Should board come first or last? 
-    PrintVisualBoard()
-    #print messages
-
+## Board Update Actions
 
 def UpdateVisualBoard():
     interactBoard = [[' ' for i in range(boardWidth)] for j in range(boardHeight)]
@@ -136,7 +138,9 @@ def UpdateVisualBoard():
     ##  
     return []
 
-def RevealBoard():
+## Board Print Actions
+
+def PrintRevealedVisualBoard():
     #For Game Win/Lose to show entire board
     for row in range(boardHeight):
         for column in range(boardWidth):
@@ -175,6 +179,8 @@ def PrintStaticBoard():
     PrintBoardBottomBorder()
     PrintXAxisLabels()
 
+## UI Part Helpers
+
 def PrintBoardTopBorder():
     print(' ', end='')
     for x in range(boardWidth):
@@ -198,14 +204,10 @@ def PrintXAxisLabels():
             label = label[1:]
         print(label, end='')
     
-
 def GetStaticBoardCellIcon(cell):
     return '*' if cell == StaticBoardCellContent.BOMB else ' '
 
-def PrintMessages():
-    bwah = 0
-    for message in messageBuffer:
-        print(message)
+
 
 
 
