@@ -11,7 +11,7 @@ class StaticBoardCellContent(Enum):
     EMPTY = 0
     BOMB = 1
 
-boardWidth, boardHeight = (10,10)
+boardWidth, boardHeight = (12,12)
 bombCount = 10
 endGame = False
 
@@ -54,10 +54,12 @@ remainingBombs = 0
 
 def InitializeStaticBoard():
     remainingBombs = bombCount
-    staticBoard  = [[StaticBoardCellContent.EMPTY]*boardWidth]*boardHeight 
+    # staticBoard  = [[StaticBoardCellContent.EMPTY]*boardWidth]*boardHeight 
+    staticBoard = [[StaticBoardCellContent.EMPTY for i in range(boardHeight)] for j in range(boardWidth)]
+    
     # Randomly pick cell; if empty, fill it and decrease
     # Dummy vals for testing purposes!
-    staticBoard[1][2] = StaticBoardCellContent.BOMB
+    staticBoard[1][4] = StaticBoardCellContent.BOMB
     staticBoard[5][5] = StaticBoardCellContent.BOMB
     return staticBoard
 
@@ -143,9 +145,14 @@ def RevealBoard():
 def PrintVisualBoard():
     global visualBoard
     #print out board visually
-    print(' ', end='', flush=True)
+    print(' ', end='')
     for x in range(boardWidth):
-        print('____', end='', flush=True)
+        print('___ ', end='')
+    print()
+    for row in staticBoard:
+        print('|', end='')
+        for cell in row:
+            wow = 0
     
     #   A   B   C
     #  ___________
@@ -156,17 +163,39 @@ def PrintVisualBoard():
 
 def PrintStaticBoard():
     global staticBoard
-    print(' ', end='')
-    for x in range(boardWidth):
-        print('___ ', end='')
-    print()
+    PrintBoardTopBorder()
     for row in staticBoard:
         print('|', end='')
         for cell in row:
             #need to convert from enum
-            print(f' {cell} |', end='')
+            print(f' {GetStaticBoardCellIcon(cell)} |', end='')
         print()
-            
+    PrintBoardBottomBorder()
+    PrintXAxisLabels()
+
+def PrintBoardTopBorder():
+    print(' ', end='')
+    for x in range(boardWidth):
+        print('___ ', end='')
+    print()
+
+def PrintBoardBottomBorder():
+    print(' ', end='')
+    for x in range(boardWidth):
+        print('‾‾‾ ', end='')
+    print()
+
+def PrintXAxisLabels():
+    print(' ', end='')
+    for x in range(boardWidth):
+        label = f' {x+1}  '
+        if(x>9):
+            label = label[1:]
+        print(label, end='')
+    
+
+def GetStaticBoardCellIcon(cell):
+    return '*' if cell == StaticBoardCellContent.BOMB else ' '
 
 def PrintMessages():
     bwah = 0
