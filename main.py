@@ -20,19 +20,6 @@ endGame = False
 staticBoard = []
 interactBoard = []
 
-
-#### HEY ME! Actual debate here! Should staticBoard JUST contain bombs, or contain numbers, or just a string visualization?
-#### staticBoard should probably be in numerical/enum format, not string format
-#### would it just store bombs, and have a dedicated visualBoard for storing numbers? Or store bombs+numbers
-##### 1: staticBoard holds bombs and numbers, visualBoard is cached and updated by local cells as determined by staticBoard and interactBoard
-##### 2: staticBoard holds bombs and numbers, visualBoard is generated from scratch every time
-##### 3: staticBoard holds bombs only, visualBoard is cached with stored numbers
-##### 4: staticBoard holds bombs only, visualBoard is generated from scratch every time
-#### For starting: 4: staticBoard holds bombs only. VisualBoard re-created each time
-
-#### Hey me: what if the board reshuffled bombs every X flags placed, preserving correct+incorrect flags and re-hiding all non-flagged squares?
-#### What if it triggered every X actions, flag or reveal?
-
 def main():
     #initialize both boards
     InitializeStaticBoard()
