@@ -85,7 +85,7 @@ def PromptUserAction():
     #call appropriate of Reveal or Flag functions as.... appropriate
     #
 
-def RevealCellInteractBoard():
+def RevealCell():
     wowow = 2
     ## if bomb: update stateBoard cell, update endGame
     ## if number: update stateBoard cell
@@ -93,7 +93,7 @@ def RevealCellInteractBoard():
     ### most elegant way to do this? Blind recurion will have a good amount of redundant checks
     
 
-def FlagCellInteractBoard():
+def FlagCell():
     placeholder = 0
     # if hidden: change to flag
     ## if bomb space, decrease remaining bomb counter
@@ -111,9 +111,13 @@ def RefreshUserScreen():
     os.system('cls' if os.name == 'nt' else 'clear')
     # Should board come first or last? 
     PrintVisualBoard()
-    #print messages
+    PrintMessages()
 
 ## Message Update Actions
+
+def PrintMessages():
+    for msg in messageBuffer:
+        print(msg)
 
 def OverwriteAndDisplayMessage(messageText):
     messageBuffer.clear()
@@ -132,73 +136,61 @@ def ClearMessageBuffer():
 
 ## Board Update Actions
 
-def UpdateVisualBoard():
-    interactBoard = [[' ' for i in range(boardWidth)] for j in range(boardHeight)]
-
+def UpdateVisualBoard(isGameEnd=False):
+    global visualBoard
+    newBoard = []
+    newBoard.append(GenerateBoardTopBorder())
     for row in range(boardHeight):
+        nextLine = '|'
         for column in range(boardWidth):
-            eeee = 1
-    # build visualBoard
-    # Iterate through stateBoard
-    # enum:
-    #    0 - Uncleared
-    #    1 - Revealed 
-    #    2 - Flagged
-    ##  
-    return []
+            icon = GetVisualBoardCellIcon(row, column, isGameEnd)
+            nextLine += f' {icon} |'
+        newBoard.append(nextLine)
+    newBoard.append(GenerateBoardBottomBorder())
+    newBoard.append(GenerateXAxisLabels())
+    visualBoard = newBoard
 
 ## Board Print Actions
 
-def PrintVisualBoard(isGameEnd=False):
-    #For Game Win/Lose to show entire board
-    PrintBoardTopBorder()
-    for row in range(boardHeight):
-        print('|', end='')
-        for column in range(boardWidth):
-            icon = GetVisualBoardCellIcon(row, column, isGameEnd)
-            # icon = '_' if icon == ' ' else icon
-            print(f' {icon} |', end='')
-        print()
-    PrintBoardBottomBorder()
-    PrintXAxisLabels()
+def PrintVisualBoard():
+    global visualBoard
+    for line in visualBoard:
+        print(line)
+
+    # PrintBoardTopBorder()
+    # for row in range(boardHeight):
+    #     print('|', end='')
+    #     for column in range(boardWidth):
+    #         icon = GetVisualBoardCellIcon(row, column, isGameEnd)
+    #         # icon = '_' if icon == ' ' else icon
+    #         print(f' {icon} |', end='')
+    #     print()
+    # PrintBoardBottomBorder()
+    # PrintXAxisLabels()
 
     
-    #   A   B   C
+    #   1   2   3
     #  ___________
     # |   | 1 | * |   1
     # | 1 | 2 | 1 |   2
     # | * | 1 |   |   3
 
-# Doesn't show numbers or any interaction states, just bombs; primarily useful for debugging
-def PrintStaticBoard():
-    global staticBoard
-    PrintBoardTopBorder()
-    for row in range(boardHeight):
-        print('|', end='')
-        for column in range(boardWidth):
-            icon = GetStaticBoardCellIcon(staticBoard[row][column])
-            icon = '_' if icon == ' ' else icon
-            print(f'_{icon}_|', end='')
-        print()
-    PrintBoardBottomBorder()
-    PrintXAxisLabels()
-
 ## UI Part Helpers
 
-def PrintBoardTopBorder():
-    print(' ', end='')
+def GenerateBoardTopBorder():
+    topBorder = ' '
     for x in range(boardWidth):
-        print('___ ', end='')
-    print()
+        topBorder += '___ '
+    return topBorder
 
-def PrintBoardBottomBorder():
-    print(' ', end='')
+def GenerateBoardBottomBorder():
+    bottomBorder = ' '
     for x in range(boardWidth):
-        print('--- ', end='')
-    print()
+        bottomBorder += '--- '
+    return bottomBorder
 
-def PrintXAxisLabels():
-    print(' ', end='')
+def GenerateXAxisLabels():
+    xLabels = ' '
     for x in range(boardWidth):
         label = f' {x+1}  '
         if(x+1 > 9):
@@ -206,9 +198,9 @@ def PrintXAxisLabels():
         if(x+1 > 99):
             #What are you doing at this point? How big is your screen??
             label = label[1:]
-        print(label, end='')
-    print()
-    
+        xLabels += label
+    return xLabels
+
 def GetStaticBoardCellIcon(cell):
     return '*' if cell == StaticBoardCellContent.BOMB else ' '
 
@@ -226,7 +218,7 @@ def GetVisualBoardCellIcon(yRow, xColumn, isGameEnd=False):
     if(staticBoard[yRow][xColumn] == StaticBoardCellContent.BOMB):
         return '*' if interactBoard[yRow][xColumn] != InteractBoardCellState.CLICKED else 'X'
 
-    #Anything else clicked by now is a number
+    # Anything else clicked by now is a number
     for y in range(yRow-1, yRow+2):
         for x in range(xColumn-1, xColumn+2):
             validCoordinates = [
@@ -240,12 +232,59 @@ def GetVisualBoardCellIcon(yRow, xColumn, isGameEnd=False):
     return str(localBombCount)
 
 
+#### OLD / LEGACY DEBUG
+# Doesn't show numbers or any interaction states, just bombs; primarily useful for debugging
+def PrintStaticBoard():
+    global staticBoard
+    PrintBoardTopBorder()
+    for row in range(boardHeight):
+        print('|', end='')
+        for column in range(boardWidth):
+            icon = GetStaticBoardCellIcon(staticBoard[row][column])
+            icon = '_' if icon == ' ' else icon
+            print(f'_{icon}_|', end='')
+        print()
+    PrintBoardBottomBorder()
+    PrintXAxisLabels()
+
+def PrintBoardTopBorder():
+    print(GenerateBoardTopBorder())
+    # print(' ', end='')
+    # for x in range(boardWidth):
+    #     print('___ ', end='')
+    # print()
+
+def PrintBoardBottomBorder():
+    print(GenerateBoardBottomBorder())
+    # print(' ', end='')
+    # for x in range(boardWidth):
+    #     print('--- ', end='')
+    # print()
+
+def PrintXAxisLabels():
+    print(GenerateXAxisLabels())
+    # print(' ', end='')
+    # for x in range(boardWidth):
+    #     label = f' {x+1}  '
+    #     if(x+1 > 9):
+    #         label = label[:-1]
+    #     if(x+1 > 99):
+    #         #What are you doing at this point? How big is your screen??
+    #         label = label[1:]
+    #     print(label, end='')
+    # print()
+    
 
 
 #####  PROGRAM START #####
 
 staticBoard = InitializeStaticBoard()
 interactBoard = InitializeInteractBoard()
+
 PrintStaticBoard()
+
+UpdateVisualBoard()
 PrintVisualBoard()
-PrintVisualBoard(True)
+
+UpdateVisualBoard(True)
+PrintVisualBoard()
