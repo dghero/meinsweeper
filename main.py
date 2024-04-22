@@ -113,7 +113,7 @@ def RefreshUserScreen():
     PrintVisualBoard()
     PrintMessages()
 
-## Message Update Actions
+## Message Actions
 
 def PrintMessages():
     for msg in messageBuffer:
@@ -134,7 +134,7 @@ def AppendMessage(messageText):
 def ClearMessageBuffer():
     messageBuffer.clear()
 
-## Board Update Actions
+## Board Actions
 
 def UpdateVisualBoard(isGameEnd=False):
     global visualBoard
@@ -149,8 +149,6 @@ def UpdateVisualBoard(isGameEnd=False):
     newBoard.append(GenerateBoardBottomBorder())
     newBoard.append(GenerateXAxisLabels())
     visualBoard = newBoard
-
-## Board Print Actions
 
 def PrintVisualBoard():
     global visualBoard
@@ -201,9 +199,6 @@ def GenerateXAxisLabels():
         xLabels += label
     return xLabels
 
-def GetStaticBoardCellIcon(cell):
-    return '*' if cell == StaticBoardCellContent.BOMB else ' '
-
 def GetVisualBoardCellIcon(yRow, xColumn, isGameEnd=False):
     localBombCount = 0
     if(interactBoard[yRow][xColumn] == InteractBoardCellState.HIDDEN):
@@ -232,7 +227,7 @@ def GetVisualBoardCellIcon(yRow, xColumn, isGameEnd=False):
     return str(localBombCount)
 
 
-#### OLD / LEGACY DEBUG
+#### OLD STATICBOARD DEBUG
 # Doesn't show numbers or any interaction states, just bombs; primarily useful for debugging
 def PrintStaticBoard():
     global staticBoard
@@ -246,6 +241,9 @@ def PrintStaticBoard():
         print()
     PrintBoardBottomBorder()
     PrintXAxisLabels()
+
+def GetStaticBoardCellIcon(cell):
+    return '*' if cell == StaticBoardCellContent.BOMB else ' '
 
 def PrintBoardTopBorder():
     print(GenerateBoardTopBorder())
