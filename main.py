@@ -2,9 +2,11 @@
 # (C) Devin Hero 2024
 
 from enum import Enum
+import math
 import os
 import re
 from ast import literal_eval as make_tuple
+
 
 class InteractBoardCellState(Enum):
     HIDDEN = 0
@@ -29,14 +31,15 @@ interactBoard = []
 def main():
     boardWidth = 0
     boardHeight = 0
+    mines = 0
     endGame = False
     lastAction = LastAction.UNKNOWN
     lastCoordinates = (None,None)
 
     print("Welcome to Meinsweeper!")
-    boardWidth, boardHeight = PromptBoardDimensions()
+    boardWidth, boardHeight, mines = PromptBoardParameters()
     # print(boardWidth, boardHeight, bombCount, remainingBombs)
-    InitializeStaticBoard(boardWidth, boardHeight)
+    InitializeStaticBoard(boardWidth, boardHeight, mines)
     InitializeInteractBoard(boardWidth, boardHeight)
 
     while(endGame == False):
@@ -44,7 +47,7 @@ def main():
         RefreshUserScreen()
         ClearMessageBuffer()
         lastAction, lastCoordinates = PromptUserAction()
-
+    
         # Resolve based on square
         ## For flag: if hidden, flag
         ##
@@ -60,24 +63,19 @@ def main():
 
 ## Board Initialization
 
-def PromptBoardDimensions():
-    boardWidth, boardHeight = (0,0)
-    while True:
-        boardWidth = input('Enter board width between 1-50): ')
-        print(boardWidth, type(boardWidth), boardWidth.isdigit())
-        if(boardWidth.isdigit() and int(boardWidth) > 0 and int(boardWidth) < 51):
-            break
-    while True:
-        boardHeight = input('Enter board height between 1-50: ')
-        if(boardHeight.isdigit() and int(boardHeight) > 0 and int(boardHeight) < 51):
-            break
-    return int(boardWidth), int(boardHeight)
+def PromptBoardParameters():
+    boardWidth, boardHeight, mines = (0,0,0)
 
-def InitializeStaticBoard(boardWidth, boardHeight):
+    boardWidth = GetUserBoardDimension('width')
+    boardHeight = GetUserBoardDimension('height')
+    mines = GetUserMineCount(boardHeight * boardWidth)
+        
+    return boardWidth, boardHeight, mines
+
+def InitializeStaticBoard(boardWidth, boardHeight, mines):
     global staticBoard
     remainingBombs = bombCount
 
-    # staticBoard  = [[StaticBoardCellContent.EMPTY]*boardWidth]*boardHeight 
     staticBoard = [[StaticBoardCellContent.EMPTY for i in range(boardWidth)] for j in range(boardHeight)]
     
     # Randomly pick cell; if empty, fill it and decrease
@@ -106,6 +104,27 @@ def InitializeInteractBoard(boardWidth, boardHeight):
 
     interactBoard[4][7] = InteractBoardCellState.CLICKED
     interactBoard[5][7] = InteractBoardCellState.CLICKED
+
+## Board Initialization Helper Actions
+
+def GetUserBoardDimension(dimension):
+    while(True):
+        boardDimension = input(f'Enter board {dimension} between 1-50 (leave empty for default 10): ')
+        if(boardDimension.isdigit() and int(boardDimension) > 0 and int(boardDimension) < 51):
+            return int(boardDimension)
+        if(boardDimension == ""):
+            return 10
+        
+def GetUserMineCount(totalCells):
+    defaultMineCnt = int(math.ceil(totalCells * .17))
+    
+    while(True):
+        mines = input(f'Enter mine count between 1-{totalCells-1} (leave empty for default {defaultMineCnt}): ')
+        if(mines.isdigit() and int(mines) > 0 and int(mines) < totalCells):
+            return int(mines)
+        if(mines == ""):
+            return defaultMineCnt
+
 
 ## Board Actions
 
@@ -185,24 +204,6 @@ def PrintVisualBoard():
     global visualBoard
     for line in visualBoard:
         print(line)
-
-    # PrintBoardTopBorder()
-    # for row in range(boardHeight):
-    #     print('|', end='')
-    #     for column in range(boardWidth):
-    #         icon = GetVisualBoardCellIcon(row, column, isGameEnd)
-    #         # icon = '_' if icon == ' ' else icon
-    #         print(f' {icon} |', end='')
-    #     print()
-    # PrintBoardBottomBorder()
-    # PrintXAxisLabels()
-
-    
-    #   1   2   3
-    #  ___________
-    # |   | 1 | * |   1
-    # | 1 | 2 | 1 |   2
-    # | * | 1 |   |   3
 
 ## UI Part Helpers
 
