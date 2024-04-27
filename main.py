@@ -207,14 +207,14 @@ def ClearMessageBuffer():
 
 visualBoard = []
 
-def UpdateVisualBoard(boardHeight, boardWidth, isGameEnd=False):
+def UpdateVisualBoard(boardWidth, boardHeight, isGameEnd=False):
     global visualBoard
     newBoard = []
     newBoard.append(GenerateBoardTopBorder(boardWidth))
     for row in reversed(range(boardHeight)):
         nextLine = '|'
         for column in range(boardWidth):
-            icon = GetVisualBoardCellIcon(row, column, isGameEnd)
+            icon = GetVisualBoardCellIcon(column, row, isGameEnd)
             nextLine += f' {icon} |'
         nextLine += f'  {row+1}'
         newBoard.append(nextLine)
@@ -256,7 +256,7 @@ def GenerateXAxisLabels(boardWidth):
     xLabels += "X"
     return xLabels
 
-def GetVisualBoardCellIcon(yRow, xColumn, isGameEnd=False):
+def GetVisualBoardCellIcon(xColumn, yRow, isGameEnd=False):
     global interactBoard
     global visualBoard
     localBombCount = 0
