@@ -22,6 +22,19 @@ class LastAction(Enum):
     CLICKED = 1
     FLAGGED = 2
 
+class TextStyle():
+    BLACK = '\033[30m'
+    RED = '\033[31m'
+    GREEN = '\033[32m'
+    YELLOW = '\033[33m'
+    BLUE = '\033[34m'
+    MAGENTA = '\033[35m'
+    CYAN = '\033[36m'
+    WHITE = '\033[37m'
+    GRAY = '\33[90m'
+    UNDERLINE = '\033[4m'
+    RESET = '\033[0m'
+
 bombCount = 10
 remainingBombs = 0
 
@@ -64,7 +77,6 @@ def main():
 ## Board Initialization
 
 def PromptGameDifficulty():
-    boardWidth, boardHeight, mines = (0,0,0)
     print(
 """Please enter difficulty:
   1 - Beginner:       9 x  9, 10 mines
@@ -264,18 +276,18 @@ def GetVisualBoardCellIcon(xColumn, yRow, isGameEnd=False):
     boardHeight = len(interactBoard)
 
     if(interactBoard[yRow][xColumn] == InteractBoardCellState.HIDDEN):
-        return ' '
+        return TextStyle.GRAY + '?' + TextStyle.RESET
 
     if(interactBoard[yRow][xColumn] == InteractBoardCellState.FLAGGED):
         if(isGameEnd and staticBoard[yRow][xColumn] == StaticBoardCellContent.EMPTY):
-            return '#'
+            return TextStyle.YELLOW + '~' + TextStyle.RESET
         else:
-            return 'F'
+            return TextStyle.RED + 'F' + TextStyle.RESET
 
     if(staticBoard[yRow][xColumn] == StaticBoardCellContent.BOMB):
-        return '*' if interactBoard[yRow][xColumn] != InteractBoardCellState.CLICKED else 'X'
+        return TextStyle.RED+'*'+TextStyle.RESET if interactBoard[yRow][xColumn] != InteractBoardCellState.CLICKED else TextStyle.RED + 'X' + TextStyle.RESET
 
-    # Anything else clicked by now is a number
+    # Anything else clicked by now is a number or clicked
     for y in range(yRow-1, yRow+2):
         for x in range(xColumn-1, xColumn+2):
             validCoordinates = [
@@ -286,7 +298,7 @@ def GetVisualBoardCellIcon(xColumn, yRow, isGameEnd=False):
             
             if (all(validCoordinates) and staticBoard[y][x] == StaticBoardCellContent.BOMB):
                 localBombCount += 1
-    return str(localBombCount)
+    return TextStyle.GREEN + str(localBombCount) + TextStyle.RESET if localBombCount > 0 else ' '
 
 
 #### OLD STATICBOARD DEBUG
