@@ -5,7 +5,7 @@ from enum import Enum
 import math
 import os
 import re
-from ast import literal_eval as make_tuple
+from ast import literal_eval
 
 
 class InteractBoardCellState(Enum):
@@ -37,7 +37,7 @@ def main():
     lastCoordinates = (None,None)
 
     print("Welcome to Meinsweeper!")
-    boardWidth, boardHeight, mines = PromptBoardParameters()
+    boardWidth, boardHeight, mines = PromptGameDifficulty()
     # print(boardWidth, boardHeight, bombCount, remainingBombs)
     InitializeStaticBoard(boardWidth, boardHeight, mines)
     InitializeInteractBoard(boardWidth, boardHeight)
@@ -63,6 +63,28 @@ def main():
 
 ## Board Initialization
 
+def PromptGameDifficulty():
+    boardWidth, boardHeight, mines = (0,0,0)
+    print(
+"""Please enter difficulty:
+  1 - Beginner:       9 x  9, 10 mines
+  2 - Intermediate:  16 x 16, 40 mines
+  3 - Expert:        30 x 16, 99 mines
+  4 - Custom:        Choose your own""")
+    mode = ""
+    while(not mode.isdigit() or int(mode) != 1 and int(mode) != 2 and int(mode) != 3 and int(mode) != 4):
+        mode = input("> ")
+    mode = int(mode)
+    if(mode == 1):
+        return 9, 9, 10
+    elif(mode == 2):
+        return 16, 16, 40
+    elif(mode == 3):
+        return 30, 16, 99
+    elif(mode == 4):
+        return PromptBoardParameters()
+
+    
 def PromptBoardParameters():
     boardWidth, boardHeight, mines = (0,0,0)
 
@@ -77,7 +99,7 @@ def InitializeStaticBoard(boardWidth, boardHeight, mines):
     remainingBombs = bombCount
 
     staticBoard = [[StaticBoardCellContent.EMPTY for i in range(boardWidth)] for j in range(boardHeight)]
-    
+    ooooo = range(boardWidth)
     # Randomly pick cell; if empty, fill it and decrease
     # Dummy vals for testing purposes!
     staticBoard[1][1] = StaticBoardCellContent.BOMB
@@ -105,7 +127,7 @@ def InitializeInteractBoard(boardWidth, boardHeight):
     interactBoard[4][7] = InteractBoardCellState.CLICKED
     interactBoard[5][7] = InteractBoardCellState.CLICKED
 
-## Board Initialization Helper Actions
+## Board Initialization Helpers
 
 def GetUserBoardDimension(dimension):
     while(True):
@@ -137,7 +159,7 @@ def PromptUserAction():
         return LastAction.UNKNOWN, (None,None)
     
     action = LastAction.CLICKED if commandReg.string[0].lower() == "c" else LastAction.FLAGGED
-    coordinates = make_tuple(commandReg.string[1:])
+    coordinates = literal_eval(commandReg.string[1:])
     
     return action, coordinates
 
