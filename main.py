@@ -13,22 +13,34 @@ class StaticBoardCellContent(Enum):
     EMPTY = 0
     BOMB = 1
 
-boardWidth, boardHeight = (8,8)
+class LastAction(Enum):
+    NOACTION = 0
+    CLICKED = 1
+    FLAGGED = 2
+
 bombCount = 10
-endGame = False
+remainingBombs = 0
 
 staticBoard = []
 interactBoard = []
 
 def main():
-    #initialize both boards
-    InitializeStaticBoard()
-    InitializeInteractBoard()
+    boardWidth = 0
+    boardHeight = 0
+    endGame = False
+    lastAction = LastAction.NOACTION
+    lastCoordinates = (-99,-99)
+
+    print("Welcome to Meinsweeper!")
+    boardWidth, boardHeight = PromptBoardDimensions()
+    print(boardWidth, boardHeight, bombCount, remainingBombs)
+    InitializeStaticBoard(boardWidth, boardHeight)
+    InitializeInteractBoard(boardWidth, boardHeight)
 
     while(endGame == False):
+        UpdateVisualBoard(boardWidth, boardHeight)
         RefreshUserScreen()
-        
-        # Ask for user input: reveal or flag, with coordinates
+        PromptUserAction()
 
         # Resolve based on square
         ## For flag: if hidden, flag
@@ -39,12 +51,29 @@ def main():
         # Check if victory obtained
 
 
-##### BOARD MANIPULATION
 
-remainingBombs = 0
 
-def InitializeStaticBoard():
+##### BOARD MANIPULATION #####
+
+## Board Initialization
+
+def PromptBoardDimensions():
+    boardWidth, boardHeight = (0,0)
+    while True:
+        boardWidth = input('Enter board width between 1-50): ')
+        print(boardWidth, type(boardWidth), boardWidth.isdigit())
+        if(boardWidth.isdigit() and int(boardWidth) > 0 and int(boardWidth) < 51):
+            break
+    while True:
+        boardHeight = input('Enter board height between 1-50: ')
+        if(boardHeight.isdigit() and int(boardHeight) > 0 and int(boardHeight) < 51):
+            break
+    return int(boardWidth), int(boardHeight)
+
+def InitializeStaticBoard(boardWidth, boardHeight):
+    global staticBoard
     remainingBombs = bombCount
+
     # staticBoard  = [[StaticBoardCellContent.EMPTY]*boardWidth]*boardHeight 
     staticBoard = [[StaticBoardCellContent.EMPTY for i in range(boardWidth)] for j in range(boardHeight)]
     
@@ -62,10 +91,9 @@ def InitializeStaticBoard():
     staticBoard[0][7] = StaticBoardCellContent.BOMB
     staticBoard[7][7] = StaticBoardCellContent.BOMB
 
-    return staticBoard
 
-
-def InitializeInteractBoard():
+def InitializeInteractBoard(boardWidth, boardHeight):
+    global interactBoard
     interactBoard = [[InteractBoardCellState.HIDDEN for i in range(boardWidth)] for j in range(boardHeight)]
     # interactBoard = [[InteractBoardCellState.CLICKED for i in range(boardWidth)] for j in range(boardHeight)]
     interactBoard[0][0] = InteractBoardCellState.FLAGGED
@@ -75,12 +103,12 @@ def InitializeInteractBoard():
 
     interactBoard[4][7] = InteractBoardCellState.CLICKED
     interactBoard[5][7] = InteractBoardCellState.CLICKED
-    
 
-    return interactBoard
+## Board Actions
 
 def PromptUserAction():
     stacyFakename = 0
+    input("Input??")
     #Need input from user: action type, cell location.
     #call appropriate of Reveal or Flag functions as.... appropriate
     #
@@ -102,10 +130,9 @@ def FlagCell():
     # if revealed: print invalid message and do nothing
 
 
-##### VISUAL MANAGEMENT
+##### VISUAL MANAGEMENT #####
 
-messageBuffer = ["Welcome to Meinsweeper!"]
-visualBoard = []
+## General Visual Actions
 
 def RefreshUserScreen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -114,6 +141,7 @@ def RefreshUserScreen():
     PrintMessages()
 
 ## Message Actions
+messageBuffer = ["Welcome to Meinsweeper!"]
 
 def PrintMessages():
     for msg in messageBuffer:
@@ -134,20 +162,23 @@ def AppendMessage(messageText):
 def ClearMessageBuffer():
     messageBuffer.clear()
 
-## Board Actions
+## Visual Board Actions
 
-def UpdateVisualBoard(isGameEnd=False):
+visualBoard = []
+
+def UpdateVisualBoard(boardHeight, boardWidth, isGameEnd=False):
     global visualBoard
     newBoard = []
-    newBoard.append(GenerateBoardTopBorder())
+    newBoard.append(GenerateBoardTopBorder(boardWidth))
     for row in range(boardHeight):
         nextLine = '|'
         for column in range(boardWidth):
             icon = GetVisualBoardCellIcon(row, column, isGameEnd)
             nextLine += f' {icon} |'
+        nextLine += f'  {row+1}'
         newBoard.append(nextLine)
-    newBoard.append(GenerateBoardBottomBorder())
-    newBoard.append(GenerateXAxisLabels())
+    newBoard.append(GenerateBoardBottomBorder(boardWidth))
+    newBoard.append(GenerateXAxisLabels(boardWidth))
     visualBoard = newBoard
 
 def PrintVisualBoard():
@@ -175,19 +206,20 @@ def PrintVisualBoard():
 
 ## UI Part Helpers
 
-def GenerateBoardTopBorder():
+def GenerateBoardTopBorder(boardWidth):
     topBorder = ' '
     for x in range(boardWidth):
         topBorder += '___ '
     return topBorder
 
-def GenerateBoardBottomBorder():
+def GenerateBoardBottomBorder(boardWidth):
     bottomBorder = ' '
     for x in range(boardWidth):
         bottomBorder += '--- '
+    bottomBorder += '  Y'
     return bottomBorder
 
-def GenerateXAxisLabels():
+def GenerateXAxisLabels(boardWidth):
     xLabels = ' '
     for x in range(boardWidth):
         label = f' {x+1}  '
@@ -197,10 +229,17 @@ def GenerateXAxisLabels():
             #What are you doing at this point? How big is your screen??
             label = label[1:]
         xLabels += label
+
+    xLabels += "X"
     return xLabels
 
 def GetVisualBoardCellIcon(yRow, xColumn, isGameEnd=False):
+    global interactBoard
+    global visualBoard
     localBombCount = 0
+    boardWidth = len(interactBoard[0])
+    boardHeight = len(interactBoard)
+
     if(interactBoard[yRow][xColumn] == InteractBoardCellState.HIDDEN):
         return ' '
 
@@ -229,60 +268,52 @@ def GetVisualBoardCellIcon(yRow, xColumn, isGameEnd=False):
 
 #### OLD STATICBOARD DEBUG
 # Doesn't show numbers or any interaction states, just bombs; primarily useful for debugging
-def PrintStaticBoard():
-    global staticBoard
-    PrintBoardTopBorder()
-    for row in range(boardHeight):
-        print('|', end='')
-        for column in range(boardWidth):
-            icon = GetStaticBoardCellIcon(staticBoard[row][column])
-            icon = '_' if icon == ' ' else icon
-            print(f'_{icon}_|', end='')
-        print()
-    PrintBoardBottomBorder()
-    PrintXAxisLabels()
+# def PrintStaticBoard():
+#     global staticBoard
+#     PrintBoardTopBorder()
+#     for row in range(boardHeight):
+#         print('|', end='')
+#         for column in range(boardWidth):
+#             icon = GetStaticBoardCellIcon(staticBoard[row][column])
+#             icon = '_' if icon == ' ' else icon
+#             print(f'_{icon}_|', end='')
+#         print()
+#     PrintBoardBottomBorder()
+#     PrintXAxisLabels()
 
-def GetStaticBoardCellIcon(cell):
-    return '*' if cell == StaticBoardCellContent.BOMB else ' '
+# def GetStaticBoardCellIcon(cell):
+#     return '*' if cell == StaticBoardCellContent.BOMB else ' '
 
-def PrintBoardTopBorder():
-    print(GenerateBoardTopBorder())
-    # print(' ', end='')
-    # for x in range(boardWidth):
-    #     print('___ ', end='')
-    # print()
+# def PrintBoardTopBorder():
+#     print(GenerateBoardTopBorder())
+#     # print(' ', end='')
+#     # for x in range(boardWidth):
+#     #     print('___ ', end='')
+#     # print()
 
-def PrintBoardBottomBorder():
-    print(GenerateBoardBottomBorder())
-    # print(' ', end='')
-    # for x in range(boardWidth):
-    #     print('--- ', end='')
-    # print()
+# def PrintBoardBottomBorder():
+#     print(GenerateBoardBottomBorder())
+#     # print(' ', end='')
+#     # for x in range(boardWidth):
+#     #     print('--- ', end='')
+#     # print()
 
-def PrintXAxisLabels():
-    print(GenerateXAxisLabels())
-    # print(' ', end='')
-    # for x in range(boardWidth):
-    #     label = f' {x+1}  '
-    #     if(x+1 > 9):
-    #         label = label[:-1]
-    #     if(x+1 > 99):
-    #         #What are you doing at this point? How big is your screen??
-    #         label = label[1:]
-    #     print(label, end='')
-    # print()
+# def PrintXAxisLabels():
+#     print(GenerateXAxisLabels())
+#     # print(' ', end='')
+#     # for x in range(boardWidth):
+#     #     label = f' {x+1}  '
+#     #     if(x+1 > 9):
+#     #         label = label[:-1]
+#     #     if(x+1 > 99):
+#     #         #What are you doing at this point? How big is your screen??
+#     #         label = label[1:]
+#     #     print(label, end='')
+#     # print()
     
 
 
 #####  PROGRAM START #####
 
-staticBoard = InitializeStaticBoard()
-interactBoard = InitializeInteractBoard()
+main()
 
-PrintStaticBoard()
-
-UpdateVisualBoard()
-PrintVisualBoard()
-
-UpdateVisualBoard(True)
-PrintVisualBoard()
