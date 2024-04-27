@@ -3,6 +3,8 @@
 
 from enum import Enum
 import os
+import re
+from ast import literal_eval as make_tuple
 
 class InteractBoardCellState(Enum):
     HIDDEN = 0
@@ -14,7 +16,7 @@ class StaticBoardCellContent(Enum):
     BOMB = 1
 
 class LastAction(Enum):
-    NOACTION = 0
+    UNKNOWN = 0
     CLICKED = 1
     FLAGGED = 2
 
@@ -28,19 +30,20 @@ def main():
     boardWidth = 0
     boardHeight = 0
     endGame = False
-    lastAction = LastAction.NOACTION
-    lastCoordinates = (-99,-99)
+    lastAction = LastAction.UNKNOWN
+    lastCoordinates = (None,None)
 
     print("Welcome to Meinsweeper!")
     boardWidth, boardHeight = PromptBoardDimensions()
-    print(boardWidth, boardHeight, bombCount, remainingBombs)
+    # print(boardWidth, boardHeight, bombCount, remainingBombs)
     InitializeStaticBoard(boardWidth, boardHeight)
     InitializeInteractBoard(boardWidth, boardHeight)
 
     while(endGame == False):
         UpdateVisualBoard(boardWidth, boardHeight)
         RefreshUserScreen()
-        PromptUserAction()
+        ClearMessageBuffer()
+        lastAction, lastCoordinates = PromptUserAction()
 
         # Resolve based on square
         ## For flag: if hidden, flag
@@ -107,11 +110,17 @@ def InitializeInteractBoard(boardWidth, boardHeight):
 ## Board Actions
 
 def PromptUserAction():
-    stacyFakename = 0
-    input("Input??")
-    #Need input from user: action type, cell location.
-    #call appropriate of Reveal or Flag functions as.... appropriate
-    #
+    print("Select action and coordinates in X,Y format (e.g. C2,5)")
+    print("[C] - Clear")
+    print("[F] - Flag")
+    commandReg = re.search("^[CcFf][0-5]{0,1}[0-9],[0-5]{0,1}[0-9]$", input("> "))
+    if commandReg == None:
+        return LastAction.UNKNOWN, (None,None)
+    
+    action = LastAction.CLICKED if commandReg.string[0].lower() == "c" else LastAction.FLAGGED
+    coordinates = make_tuple(commandReg.string[1:])
+    
+    return action, coordinates
 
 def RevealCell():
     wowow = 2
@@ -146,15 +155,6 @@ messageBuffer = ["Welcome to Meinsweeper!"]
 def PrintMessages():
     for msg in messageBuffer:
         print(msg)
-
-def OverwriteAndDisplayMessage(messageText):
-    messageBuffer.clear()
-    messageBuffer.append(messageText)
-    RefreshUserScreen()
-
-def AppendAndDisplayMessage(messageText):
-    messageBuffer.append(messageText)
-    RefreshUserScreen()
 
 def AppendMessage(messageText):
     messageBuffer.append(messageText)
