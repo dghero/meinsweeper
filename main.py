@@ -170,7 +170,7 @@ def UpdateVisualBoard(boardHeight, boardWidth, isGameEnd=False):
     global visualBoard
     newBoard = []
     newBoard.append(GenerateBoardTopBorder(boardWidth))
-    for row in range(boardHeight):
+    for row in reversed(range(boardHeight)):
         nextLine = '|'
         for column in range(boardWidth):
             icon = GetVisualBoardCellIcon(row, column, isGameEnd)
