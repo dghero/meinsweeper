@@ -35,9 +35,6 @@ class TextStyle():
     UNDERLINE = '\033[4m'
     RESET = '\033[0m'
 
-bombCount = 10
-remainingBombs = 0
-
 staticBoard = []
 interactBoard = []
 
@@ -45,6 +42,7 @@ def main():
     boardWidth = 0
     boardHeight = 0
     mines = 0
+    correctlyFlaggedMines = 0
     endGame = False
     lastAction = LastAction.UNKNOWN
     lastCoordinates = (None,None)
@@ -60,6 +58,12 @@ def main():
         RefreshUserScreen()
         ClearMessageBuffer()
         lastAction, lastCoordinates = PromptUserAction()
+        if(lastAction == LastAction.UNKNOWN):
+            AppendMessage("Error: Unknown action, try again")
+        elif(lastAction == LastAction.FLAGGED):
+            correctlyFlaggedMines += FlagCell(*lastCoordinates)
+        elif(lastAction == LastAction.CLICKED):
+            endGame = RevealCell(*lastCoordinates)
     
         # Resolve based on square
         ## For flag: if hidden, flag
@@ -87,6 +91,7 @@ def PromptGameDifficulty():
     while(not mode.isdigit() or int(mode) != 1 and int(mode) != 2 and int(mode) != 3 and int(mode) != 4):
         mode = input("> ")
     mode = int(mode)
+    # Returns in order: width, height, bombs
     if(mode == 1):
         return 9, 9, 10
     elif(mode == 2):
@@ -108,7 +113,7 @@ def PromptBoardParameters():
 
 def InitializeStaticBoard(boardWidth, boardHeight, mines):
     global staticBoard
-    remainingBombs = bombCount
+    remainingBombs = mines
 
     staticBoard = [[StaticBoardCellContent.EMPTY for i in range(boardWidth)] for j in range(boardHeight)]
     ooooo = range(boardWidth)
@@ -126,6 +131,8 @@ def InitializeStaticBoard(boardWidth, boardHeight, mines):
     staticBoard[0][7] = StaticBoardCellContent.BOMB
     staticBoard[7][7] = StaticBoardCellContent.BOMB
 
+    staticBoard[boardHeight-1][boardWidth-1] = StaticBoardCellContent.BOMB
+
 
 def InitializeInteractBoard(boardWidth, boardHeight):
     global interactBoard
@@ -138,6 +145,8 @@ def InitializeInteractBoard(boardWidth, boardHeight):
 
     interactBoard[4][7] = InteractBoardCellState.CLICKED
     interactBoard[5][7] = InteractBoardCellState.CLICKED
+
+    interactBoard[boardHeight-1][boardWidth-1] = InteractBoardCellState.FLAGGED
 
 ## Board Initialization Helpers
 
@@ -165,7 +174,7 @@ def GetUserMineCount(totalCells):
 def PromptUserAction():
     print("Select action and coordinates in X,Y format (e.g. C2,5)")
     print("[C] - Clear")
-    print("[F] - Flag")
+    print("[F] - Flag/Unflag")
     commandReg = re.search("^[CcFf][0-5]{0,1}[0-9],[0-5]{0,1}[0-9]$", input("> "))
     if commandReg == None:
         return LastAction.UNKNOWN, (None,None)
@@ -175,21 +184,38 @@ def PromptUserAction():
     
     return action, coordinates
 
-def RevealCell():
+def RevealCell(xColumn, yRow):
+    global interactBoard
+    global staticBoard
     wowow = 2
+
+    
     ## if bomb: update stateBoard cell, update endGame
     ## if number: update stateBoard cell
     ## if empty: update stateBoard, recurse upon all VALID surrounding cells
     ### most elegant way to do this? Blind recurion will have a good amount of redundant checks
     
 
-def FlagCell():
-    placeholder = 0
-    # if hidden: change to flag
-    ## if bomb space, decrease remaining bomb counter
-    # if flagged: change to hidden
-    ## if bomb space, increase remaining bomb counter
-    # if revealed: print invalid message and do nothing
+def FlagCell(xColumn, yRow):
+    global interactBoard
+    global staticBoard
+    cellState = interactBoard[yRow][xColumn]
+
+    if(cellState == InteractBoardCellState.CLICKED):
+        AppendMessage(f'Attempted to flag revealed cell at {xColumn},{yRow}')
+        return 0
+    if(cellState == InteractBoardCellState.HIDDEN):
+        interactBoard[yRow][xColumn] = InteractBoardCellState.FLAGGED
+        if(staticBoard[yRow][xColumn] == StaticBoardCellContent.BOMB):
+            return 1
+        else:
+            return 0
+    if(cellState == InteractBoardCellState.FLAGGED):
+        interactBoard[yRow][xColumn] = InteractBoardCellState.HIDDEN
+        if(staticBoard[yRow][xColumn] == StaticBoardCellContent.BOMB):
+            return -1
+        else:
+            return 0
 
 
 ##### VISUAL MANAGEMENT #####
