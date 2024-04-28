@@ -5,6 +5,7 @@ from enum import Enum
 import math
 import os
 import re
+import random
 #from ast import literal_eval
 
 
@@ -117,7 +118,14 @@ def InitializeStaticBoard(boardWidth, boardHeight, mines):
     remainingBombs = mines
 
     staticBoard = [[StaticBoardCellContent.EMPTY for i in range(boardWidth)] for j in range(boardHeight)]
-    ooooo = range(boardWidth)
+    random.seed()
+    while(remainingBombs > 0):
+        x = random.randint(0, boardWidth-1)
+        y = random.randint(0, boardHeight-1)
+        if(staticBoard[y][x] == StaticBoardCellContent.EMPTY):
+            staticBoard[y][x] = StaticBoardCellContent.BOMB
+            remainingBombs -= 1
+
     # Randomly pick cell; if empty, fill it and decrease
     # Dummy vals for testing purposes!
     # staticBoard[1][1] = StaticBoardCellContent.BOMB
@@ -127,28 +135,17 @@ def InitializeStaticBoard(boardWidth, boardHeight, mines):
     # staticBoard[5][5] = StaticBoardCellContent.BOMB
     # staticBoard[3][7] = StaticBoardCellContent.BOMB
 
-    staticBoard[0][0] = StaticBoardCellContent.BOMB
-    staticBoard[7][0] = StaticBoardCellContent.BOMB
-    staticBoard[0][7] = StaticBoardCellContent.BOMB
-    staticBoard[7][7] = StaticBoardCellContent.BOMB
+    # staticBoard[0][0] = StaticBoardCellContent.BOMB
+    # staticBoard[7][0] = StaticBoardCellContent.BOMB
+    # staticBoard[0][7] = StaticBoardCellContent.BOMB
+    # staticBoard[7][7] = StaticBoardCellContent.BOMB
 
-    staticBoard[boardHeight-1][boardWidth-1] = StaticBoardCellContent.BOMB
+    # staticBoard[boardHeight-1][boardWidth-1] = StaticBoardCellContent.BOMB
 
 
 def InitializeInteractBoard(boardWidth, boardHeight):
     global interactBoard
     interactBoard = [[InteractBoardCellState.HIDDEN for i in range(boardWidth)] for j in range(boardHeight)]
-    # interactBoard = [[InteractBoardCellState.CLICKED for i in range(boardWidth)] for j in range(boardHeight)]
-    
-    # interactBoard[0][0] = InteractBoardCellState.FLAGGED
-    # interactBoard[1][0] = InteractBoardCellState.FLAGGED
-    # interactBoard[0][1] = InteractBoardCellState.CLICKED
-    # # interactBoard[1][1] = InteractBoardCellState.CLICKED
-
-    # interactBoard[4][7] = InteractBoardCellState.CLICKED
-    # interactBoard[5][7] = InteractBoardCellState.CLICKED
-
-    # interactBoard[boardHeight-1][boardWidth-1] = InteractBoardCellState.FLAGGED
 
 ## Board Initialization Helpers
 
@@ -262,6 +259,7 @@ def FlagCell(xColumn, yRow):
         else:
             return 1
 
+
 def GetCellAdjacentBombCount(xColumn, yRow):
     global staticBoard
     boardWidth, boardHeight = len(staticBoard[0]), len(staticBoard)
@@ -285,7 +283,7 @@ def IsGameEnd(exploded, mines, flagScore):
     elif(mines == flagScore):
         AppendMessage("All mines were flagged! YOU WIN")
         return True
-    return False    
+    return False
 
 ##### VISUAL MANAGEMENT #####
 
