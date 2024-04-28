@@ -51,7 +51,6 @@ def main():
 
     print("Welcome to Meinsweeper!")
     boardWidth, boardHeight, mines = PromptGameDifficulty()
-    # print(boardWidth, boardHeight, bombCount, remainingBombs)
     InitializeStaticBoard(boardWidth, boardHeight, mines)
     InitializeInteractBoard(boardWidth, boardHeight)
 
@@ -74,9 +73,7 @@ def main():
         UpdateVisualBoard(endGame)
         RefreshUserScreen()
         ClearMessageBuffer()
-    
-
-
+        
 
 ##### BOARD MANIPULATION #####
 
@@ -102,7 +99,6 @@ def PromptGameDifficulty():
         return 30, 16, 99
     elif(mode == 4):
         return PromptBoardParameters()
-
     
 def PromptBoardParameters():
     boardWidth, boardHeight, mines = (0,0,0)
@@ -126,28 +122,17 @@ def InitializeStaticBoard(boardWidth, boardHeight, mines):
             staticBoard[y][x] = StaticBoardCellContent.BOMB
             remainingBombs -= 1
 
-    # Randomly pick cell; if empty, fill it and decrease
     # Dummy vals for testing purposes!
-    # staticBoard[1][1] = StaticBoardCellContent.BOMB
-    # staticBoard[1][4] = StaticBoardCellContent.BOMB
-    # staticBoard[1][5] = StaticBoardCellContent.BOMB
-    # staticBoard[1][6] = StaticBoardCellContent.BOMB
-    # staticBoard[5][5] = StaticBoardCellContent.BOMB
-    # staticBoard[3][7] = StaticBoardCellContent.BOMB
-
     # staticBoard[0][0] = StaticBoardCellContent.BOMB
     # staticBoard[7][0] = StaticBoardCellContent.BOMB
     # staticBoard[0][7] = StaticBoardCellContent.BOMB
     # staticBoard[7][7] = StaticBoardCellContent.BOMB
-
     # staticBoard[boardHeight-1][boardWidth-1] = StaticBoardCellContent.BOMB
 
 
 def InitializeInteractBoard(boardWidth, boardHeight):
     global interactBoard
     interactBoard = [[InteractBoardCellState.HIDDEN for i in range(boardWidth)] for j in range(boardHeight)]
-
-## Board Initialization Helpers
 
 def GetUserBoardDimension(dimension):
     while(True):
@@ -258,7 +243,6 @@ def FlagCell(xColumn, yRow):
             return -1
         else:
             return 1
-
 
 def GetCellAdjacentBombCount(xColumn, yRow):
     global staticBoard
@@ -388,56 +372,7 @@ def GetVisualBoardCellIcon(xColumn, yRow, isGameEnd=False):
     localBombCount = GetCellAdjacentBombCount(xColumn, yRow)
     return TextStyle.GREEN + str(localBombCount) + TextStyle.RESET if localBombCount > 0 else ' '
 
-
-
-#### OLD STATICBOARD DEBUG
-# Doesn't show numbers or any interaction states, just bombs; primarily useful for debugging
-# def PrintStaticBoard():
-#     global staticBoard
-#     PrintBoardTopBorder()
-#     for row in range(boardHeight):
-#         print('|', end='')
-#         for column in range(boardWidth):
-#             icon = GetStaticBoardCellIcon(staticBoard[row][column])
-#             icon = '_' if icon == ' ' else icon
-#             print(f'_{icon}_|', end='')
-#         print()
-#     PrintBoardBottomBorder()
-#     PrintXAxisLabels()
-
-# def GetStaticBoardCellIcon(cell):
-#     return '*' if cell == StaticBoardCellContent.BOMB else ' '
-
-# def PrintBoardTopBorder():
-#     print(GenerateBoardTopBorder())
-#     # print(' ', end='')
-#     # for x in range(boardWidth):
-#     #     print('___ ', end='')
-#     # print()
-
-# def PrintBoardBottomBorder():
-#     print(GenerateBoardBottomBorder())
-#     # print(' ', end='')
-#     # for x in range(boardWidth):
-#     #     print('--- ', end='')
-#     # print()
-
-# def PrintXAxisLabels():
-#     print(GenerateXAxisLabels())
-#     # print(' ', end='')
-#     # for x in range(boardWidth):
-#     #     label = f' {x+1}  '
-#     #     if(x+1 > 9):
-#     #         label = label[:-1]
-#     #     if(x+1 > 99):
-#     #         #What are you doing at this point? How big is your screen??
-#     #         label = label[1:]
-#     #     print(label, end='')
-#     # print()
-    
-
-
-#####  PROGRAM START #####
+##########  PROGRAM START ##########
 
 main()
 
