@@ -61,8 +61,10 @@ def main():
         if(lastAction == LastAction.UNKNOWN):
             AppendMessage("Error: Unknown action, try again")
         elif(lastAction == LastAction.FLAGGED):
+            AppendMessage(f'Last Action: Flagged cell at ({lastCoordinates[0]+1}, {lastCoordinates[1]+1})')
             correctlyFlaggedMines += FlagCell(*lastCoordinates)
         elif(lastAction == LastAction.CLICKED):
+            AppendMessage(f'Last Action: Revealed cell at ({lastCoordinates[0]+1}, {lastCoordinates[1]+1})')
             endGame = RevealCell(*lastCoordinates)
     
         # Resolve based on square
@@ -141,7 +143,6 @@ def InitializeInteractBoard(boardWidth, boardHeight):
     interactBoard[0][0] = InteractBoardCellState.FLAGGED
     interactBoard[1][0] = InteractBoardCellState.FLAGGED
     interactBoard[0][1] = InteractBoardCellState.CLICKED
-    interactBoard[1][1] = InteractBoardCellState.CLICKED
 
     interactBoard[4][7] = InteractBoardCellState.CLICKED
     interactBoard[5][7] = InteractBoardCellState.CLICKED
@@ -189,16 +190,25 @@ def RevealCell(xColumn, yRow):
     global interactBoard
     global staticBoard
     
-    if(staticBoard[yRow][xColumn] == StaticBoardCellContent.BOMB):
-        interactBoard[yRow][xColumn] = InteractBoardCellState.CLICKED
-        AppendMessage(f'BOOM! Bomb revealed at {xColumn},{yRow}')
-        return True
-    if(GetCellAdjacentBombCount(xColumn, yRow) > 0):
-        #number
-        interactBoard[yRow][xColumn] = InteractBoardCellState.CLICKED
-    else:
-        CascadeBlankCellReveal(xColumn, yRow)
+    if(interactBoard[yRow][xColumn] == InteractBoardCellState.CLICKED):
+        AppendMessage('Attempted to reveal cleared cell; no action taken')
 
+    elif(interactBoard[yRow][xColumn] == InteractBoardCellState.FLAGGED):
+        AppendMessage('Attempted to reveal flagged cell; no action taken')
+
+    elif(staticBoard[yRow][xColumn] == StaticBoardCellContent.BOMB):
+        interactBoard[yRow][xColumn] = InteractBoardCellState.CLICKED
+        AppendMessage('BOOM! Mine was triggered and exploded')
+        return True
+    
+    elif(GetCellAdjacentBombCount(xColumn, yRow) > 0):
+        AppendMessage('Cell cleared')
+        interactBoard[yRow][xColumn] = InteractBoardCellState.CLICKED
+
+    else:
+        AppendMessage('Blank cell/s cleared')
+        CascadeBlankCellReveal(xColumn, yRow)
+    
     return False
     
 def CascadeBlankCellReveal(xColumn, yRow):
@@ -234,15 +244,17 @@ def FlagCell(xColumn, yRow):
     cellState = interactBoard[yRow][xColumn]
 
     if(cellState == InteractBoardCellState.CLICKED):
-        AppendMessage(f'Attempted to flag revealed cell at {xColumn},{yRow}')
+        AppendMessage('Attempted to flag revealed cell; no action taken')
         return 0
     if(cellState == InteractBoardCellState.HIDDEN):
+        AppendMessage('Cell flagged')
         interactBoard[yRow][xColumn] = InteractBoardCellState.FLAGGED
         if(staticBoard[yRow][xColumn] == StaticBoardCellContent.BOMB):
             return 1
         else:
             return 0
     if(cellState == InteractBoardCellState.FLAGGED):
+        AppendMessage('Cell unflagged')
         interactBoard[yRow][xColumn] = InteractBoardCellState.HIDDEN
         if(staticBoard[yRow][xColumn] == StaticBoardCellContent.BOMB):
             return -1
