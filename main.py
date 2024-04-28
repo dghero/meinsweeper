@@ -5,7 +5,7 @@ from enum import Enum
 import math
 import os
 import re
-from ast import literal_eval
+#from ast import literal_eval
 
 
 class InteractBoardCellState(Enum):
@@ -182,18 +182,50 @@ def PromptUserAction():
     action = LastAction.CLICKED if commandReg.string[0].lower() == "c" else LastAction.FLAGGED
     # coordinates = literal_eval(commandReg.string[1:])
     coordinates = commandReg.string[1:].split(",")
-    return action, (coordinates[0]-1, coordinates[1]-1)
+    # Need to account for -1 offset between user coordinates vs. list indexing
+    return action, (int(coordinates[0])-1, int(coordinates[1])-1)
 
 def RevealCell(xColumn, yRow):
     global interactBoard
     global staticBoard
-    wowow = 2
-
     
-    ## if bomb: update stateBoard cell, update endGame
-    ## if number: update stateBoard cell
-    ## if empty: update stateBoard, recurse upon all VALID surrounding cells
-    ### most elegant way to do this? Blind recurion will have a good amount of redundant checks
+    if(staticBoard[yRow][xColumn] == StaticBoardCellContent.BOMB):
+        interactBoard[yRow][xColumn] = InteractBoardCellState.CLICKED
+        AppendMessage(f'BOOM! Bomb revealed at {xColumn},{yRow}')
+        return True
+    if(GetCellAdjacentBombCount(xColumn, yRow) > 0):
+        #number
+        interactBoard[yRow][xColumn] = InteractBoardCellState.CLICKED
+    else:
+        CascadeBlankCellReveal(xColumn, yRow)
+
+    return False
+    
+def CascadeBlankCellReveal(xColumn, yRow):
+    global interactBoard
+    global staticBoard
+    boardWidth, boardHeight = len(staticBoard[0]), len(staticBoard)
+    validCoordinates = [
+                xColumn >= 0,
+                yRow >= 0,
+                xColumn < boardWidth,
+                yRow < boardHeight]
+    
+    if(not all(validCoordinates)):
+        return
+    
+    if(GetCellAdjacentBombCount(xColumn, yRow) > 0):
+        interactBoard[yRow][xColumn] = InteractBoardCellState.CLICKED
+    elif(interactBoard[yRow][xColumn] == InteractBoardCellState.HIDDEN):
+        interactBoard[yRow][xColumn] = InteractBoardCellState.CLICKED
+        CascadeBlankCellReveal(xColumn+1, yRow+1)
+        CascadeBlankCellReveal(xColumn+1, yRow-1)
+        CascadeBlankCellReveal(xColumn+1, yRow)
+        CascadeBlankCellReveal(xColumn-1, yRow+1)
+        CascadeBlankCellReveal(xColumn-1, yRow-1)
+        CascadeBlankCellReveal(xColumn-1, yRow)
+        CascadeBlankCellReveal(xColumn, yRow+1)
+        CascadeBlankCellReveal(xColumn, yRow-1)
     
 
 def FlagCell(xColumn, yRow):
@@ -217,6 +249,21 @@ def FlagCell(xColumn, yRow):
         else:
             return 0
 
+def GetCellAdjacentBombCount(xColumn, yRow):
+    global staticBoard
+    boardWidth, boardHeight = len(staticBoard[0]), len(staticBoard)
+    adjBombCount = 0
+    for y in range(yRow-1, yRow+2):
+        for x in range(xColumn-1, xColumn+2):
+            validCoordinates = [
+                x >= 0,
+                y >= 0,
+                x < boardWidth,
+                y < boardHeight]
+            
+            if (all(validCoordinates) and staticBoard[y][x] == StaticBoardCellContent.BOMB):
+                adjBombCount += 1
+    return adjBombCount
 
 ##### VISUAL MANAGEMENT #####
 
@@ -297,9 +344,6 @@ def GenerateXAxisLabels(boardWidth):
 def GetVisualBoardCellIcon(xColumn, yRow, isGameEnd=False):
     global interactBoard
     global visualBoard
-    localBombCount = 0
-    boardWidth = len(interactBoard[0])
-    boardHeight = len(interactBoard)
 
     if(interactBoard[yRow][xColumn] == InteractBoardCellState.HIDDEN):
         return TextStyle.GRAY + '?' + TextStyle.RESET
@@ -314,17 +358,9 @@ def GetVisualBoardCellIcon(xColumn, yRow, isGameEnd=False):
         return TextStyle.RED+'*'+TextStyle.RESET if interactBoard[yRow][xColumn] != InteractBoardCellState.CLICKED else TextStyle.RED + 'X' + TextStyle.RESET
 
     # Anything else clicked by now is a number or clicked
-    for y in range(yRow-1, yRow+2):
-        for x in range(xColumn-1, xColumn+2):
-            validCoordinates = [
-                x >= 0,
-                y >= 0,
-                x < boardWidth,
-                y < boardHeight]
-            
-            if (all(validCoordinates) and staticBoard[y][x] == StaticBoardCellContent.BOMB):
-                localBombCount += 1
+    localBombCount = GetCellAdjacentBombCount(xColumn, yRow)
     return TextStyle.GREEN + str(localBombCount) + TextStyle.RESET if localBombCount > 0 else ' '
+
 
 
 #### OLD STATICBOARD DEBUG
