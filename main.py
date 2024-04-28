@@ -42,8 +42,8 @@ def main():
     boardWidth = 0
     boardHeight = 0
     mines = 0
-    correctFlaggedMines = 0
-    badFlaggedMines = 0
+    exploded = False
+    flagScore = 0 #increases with correct flags, decreases with incorrect flags
     endGame = False
     lastAction = LastAction.UNKNOWN
     lastCoordinates = (None,None)
@@ -54,28 +54,26 @@ def main():
     InitializeStaticBoard(boardWidth, boardHeight, mines)
     InitializeInteractBoard(boardWidth, boardHeight)
 
+    UpdateVisualBoard()
+    RefreshUserScreen()
+
     while(endGame == False):
-        UpdateVisualBoard(boardWidth, boardHeight)
-        RefreshUserScreen()
-        ClearMessageBuffer()
         lastAction, lastCoordinates = PromptUserAction()
         if(lastAction == LastAction.UNKNOWN):
             AppendMessage("Error: Unknown action, try again")
         elif(lastAction == LastAction.FLAGGED):
             AppendMessage(f'Last Action: Flagged cell at ({lastCoordinates[0]+1}, {lastCoordinates[1]+1})')
-            correctFlaggedMines += FlagCell(*lastCoordinates)
+            flagScore += FlagCell(*lastCoordinates)
         elif(lastAction == LastAction.CLICKED):
             AppendMessage(f'Last Action: Revealed cell at ({lastCoordinates[0]+1}, {lastCoordinates[1]+1})')
             exploded = RevealCell(*lastCoordinates)
-        IsGameEnd(exploded, mines, correctlyFlaggedMines)
-        # Resolve based on square
-        ## For flag: if hidden, flag
-        ##
-        ## Update immediate cell
-        ## Update surrounding cells 
 
-        # Check if victory obtained
-
+        endGame = IsGameEnd(exploded, mines, flagScore)
+        AppendMessage(f'DEBUG -- {mines} mines, {flagScore} score')
+        UpdateVisualBoard(endGame)
+        RefreshUserScreen()
+        ClearMessageBuffer()
+    
 
 
 
@@ -122,12 +120,12 @@ def InitializeStaticBoard(boardWidth, boardHeight, mines):
     ooooo = range(boardWidth)
     # Randomly pick cell; if empty, fill it and decrease
     # Dummy vals for testing purposes!
-    staticBoard[1][1] = StaticBoardCellContent.BOMB
-    staticBoard[1][4] = StaticBoardCellContent.BOMB
-    staticBoard[1][5] = StaticBoardCellContent.BOMB
-    staticBoard[1][6] = StaticBoardCellContent.BOMB
-    staticBoard[5][5] = StaticBoardCellContent.BOMB
-    staticBoard[3][7] = StaticBoardCellContent.BOMB
+    # staticBoard[1][1] = StaticBoardCellContent.BOMB
+    # staticBoard[1][4] = StaticBoardCellContent.BOMB
+    # staticBoard[1][5] = StaticBoardCellContent.BOMB
+    # staticBoard[1][6] = StaticBoardCellContent.BOMB
+    # staticBoard[5][5] = StaticBoardCellContent.BOMB
+    # staticBoard[3][7] = StaticBoardCellContent.BOMB
 
     staticBoard[0][0] = StaticBoardCellContent.BOMB
     staticBoard[7][0] = StaticBoardCellContent.BOMB
@@ -141,15 +139,16 @@ def InitializeInteractBoard(boardWidth, boardHeight):
     global interactBoard
     interactBoard = [[InteractBoardCellState.HIDDEN for i in range(boardWidth)] for j in range(boardHeight)]
     # interactBoard = [[InteractBoardCellState.CLICKED for i in range(boardWidth)] for j in range(boardHeight)]
-    interactBoard[0][0] = InteractBoardCellState.FLAGGED
-    interactBoard[1][0] = InteractBoardCellState.FLAGGED
-    interactBoard[0][1] = InteractBoardCellState.CLICKED
-    # interactBoard[1][1] = InteractBoardCellState.CLICKED
+    
+    # interactBoard[0][0] = InteractBoardCellState.FLAGGED
+    # interactBoard[1][0] = InteractBoardCellState.FLAGGED
+    # interactBoard[0][1] = InteractBoardCellState.CLICKED
+    # # interactBoard[1][1] = InteractBoardCellState.CLICKED
 
-    interactBoard[4][7] = InteractBoardCellState.CLICKED
-    interactBoard[5][7] = InteractBoardCellState.CLICKED
+    # interactBoard[4][7] = InteractBoardCellState.CLICKED
+    # interactBoard[5][7] = InteractBoardCellState.CLICKED
 
-    interactBoard[boardHeight-1][boardWidth-1] = InteractBoardCellState.FLAGGED
+    # interactBoard[boardHeight-1][boardWidth-1] = InteractBoardCellState.FLAGGED
 
 ## Board Initialization Helpers
 
@@ -254,14 +253,14 @@ def FlagCell(xColumn, yRow):
         if(staticBoard[yRow][xColumn] == StaticBoardCellContent.BOMB):
             return 1
         else:
-            return 0
+            return -1
     if(cellState == InteractBoardCellState.FLAGGED):
         AppendMessage('Cell unflagged')
         interactBoard[yRow][xColumn] = InteractBoardCellState.HIDDEN
         if(staticBoard[yRow][xColumn] == StaticBoardCellContent.BOMB):
             return -1
         else:
-            return 0
+            return 1
 
 def GetCellAdjacentBombCount(xColumn, yRow):
     global staticBoard
@@ -279,12 +278,14 @@ def GetCellAdjacentBombCount(xColumn, yRow):
                 adjBombCount += 1
     return adjBombCount
 
-def IsGameEnd(exploded, mines, correctlyFlaggedMines):
+def IsGameEnd(exploded, mines, flagScore):
     if(exploded):
         AppendMessage("You blew up a mine. Oops. GAME OVER")
         return True
-    elif(mines == correctlyFlaggedMines)
-    
+    elif(mines == flagScore):
+        AppendMessage("All mines were flagged! YOU WIN")
+        return True
+    return False    
 
 ##### VISUAL MANAGEMENT #####
 
@@ -313,8 +314,10 @@ def ClearMessageBuffer():
 
 visualBoard = []
 
-def UpdateVisualBoard(boardWidth, boardHeight, isGameEnd=False):
+def UpdateVisualBoard(isGameEnd=False):
     global visualBoard
+    global staticBoard
+    boardWidth, boardHeight = len(staticBoard[0]), len(staticBoard)
     newBoard = []
     newBoard.append(GenerateBoardTopBorder(boardWidth))
     for row in reversed(range(boardHeight)):
