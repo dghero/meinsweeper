@@ -179,11 +179,15 @@ def PromptUserAction():
         return LastAction.UNKNOWN, (None,None)
     
     action = LastAction.CLICKED if commandReg.string[0].lower() == "c" else LastAction.FLAGGED
-    # coordinates = literal_eval(commandReg.string[1:])
     coordinates = commandReg.string[1:].split(",")
     # Need to account for -1 offset between user coordinates vs. list indexing
-    return action, (int(coordinates[0])-1, int(coordinates[1])-1)
-
+    x, y = int(coordinates[0])-1, int(coordinates[1])-1
+    
+    if(IsValidCoordinates(x,y)):
+        return action, x, y
+    else:
+        return LastAction.UNKNOWN, (None,None)
+    
 def RevealCell(xColumn, yRow):
     global interactBoard
     global staticBoard
@@ -213,13 +217,8 @@ def CascadeBlankCellReveal(xColumn, yRow):
     global interactBoard
     global staticBoard
     boardWidth, boardHeight = len(staticBoard[0]), len(staticBoard)
-    validCoordinates = [
-                xColumn >= 0,
-                yRow >= 0,
-                xColumn < boardWidth,
-                yRow < boardHeight]
     
-    if(not all(validCoordinates)):
+    if(not IsValidCoordinates(xColumn,yRow)):
         return
     
     if(GetCellAdjacentBombCount(xColumn, yRow) > 0):
@@ -266,13 +265,8 @@ def GetCellAdjacentBombCount(xColumn, yRow):
     adjBombCount = 0
     for y in range(yRow-1, yRow+2):
         for x in range(xColumn-1, xColumn+2):
-            validCoordinates = [
-                x >= 0,
-                y >= 0,
-                x < boardWidth,
-                y < boardHeight]
             
-            if (all(validCoordinates) and staticBoard[y][x] == StaticBoardCellContent.BOMB):
+            if (all(IsValidCoordinates(x,y)) and staticBoard[y][x] == StaticBoardCellContent.BOMB):
                 adjBombCount += 1
     return adjBombCount
 
@@ -284,6 +278,16 @@ def IsGameEnd(exploded, mines, flagScore):
         AppendMessage("All mines were flagged! YOU WIN")
         return True
     return False
+
+def IsValidCoordinates(xColumn, yRow):
+    boardWidth, boardHeight = len(staticBoard[0]), len(staticBoard)
+    validCoordinates = [
+                xColumn >= 0,
+                yRow >= 0,
+                xColumn < boardWidth,
+                yRow < boardHeight]
+    return all(validCoordinates)
+    
 
 ##### VISUAL MANAGEMENT #####
 
