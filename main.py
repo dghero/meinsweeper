@@ -180,9 +180,9 @@ def PromptUserAction():
         return LastAction.UNKNOWN, (None,None)
     
     action = LastAction.CLICKED if commandReg.string[0].lower() == "c" else LastAction.FLAGGED
-    coordinates = literal_eval(commandReg.string[1:])
-    
-    return action, coordinates
+    # coordinates = literal_eval(commandReg.string[1:])
+    coordinates = commandReg.string[1:].split(",")
+    return action, (coordinates[0]-1, coordinates[1]-1)
 
 def RevealCell(xColumn, yRow):
     global interactBoard
