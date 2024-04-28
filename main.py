@@ -69,11 +69,11 @@ def main():
             exploded = RevealCell(*lastCoordinates)
 
         endGame = IsGameEnd(exploded, mines, flagScore)
-        AppendMessage(f'DEBUG -- {mines} mines, {flagScore} score')
+        #AppendMessage(f'DEBUG -- {mines} mines, {flagScore} score')
         UpdateVisualBoard(endGame)
         RefreshUserScreen()
         ClearMessageBuffer()
-        
+
 
 ##### BOARD MANIPULATION #####
 
