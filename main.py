@@ -42,7 +42,8 @@ def main():
     boardWidth = 0
     boardHeight = 0
     mines = 0
-    correctlyFlaggedMines = 0
+    correctFlaggedMines = 0
+    badFlaggedMines = 0
     endGame = False
     lastAction = LastAction.UNKNOWN
     lastCoordinates = (None,None)
@@ -62,11 +63,11 @@ def main():
             AppendMessage("Error: Unknown action, try again")
         elif(lastAction == LastAction.FLAGGED):
             AppendMessage(f'Last Action: Flagged cell at ({lastCoordinates[0]+1}, {lastCoordinates[1]+1})')
-            correctlyFlaggedMines += FlagCell(*lastCoordinates)
+            correctFlaggedMines += FlagCell(*lastCoordinates)
         elif(lastAction == LastAction.CLICKED):
             AppendMessage(f'Last Action: Revealed cell at ({lastCoordinates[0]+1}, {lastCoordinates[1]+1})')
-            endGame = RevealCell(*lastCoordinates)
-    
+            exploded = RevealCell(*lastCoordinates)
+        IsGameEnd(exploded, mines, correctlyFlaggedMines)
         # Resolve based on square
         ## For flag: if hidden, flag
         ##
@@ -143,6 +144,7 @@ def InitializeInteractBoard(boardWidth, boardHeight):
     interactBoard[0][0] = InteractBoardCellState.FLAGGED
     interactBoard[1][0] = InteractBoardCellState.FLAGGED
     interactBoard[0][1] = InteractBoardCellState.CLICKED
+    # interactBoard[1][1] = InteractBoardCellState.CLICKED
 
     interactBoard[4][7] = InteractBoardCellState.CLICKED
     interactBoard[5][7] = InteractBoardCellState.CLICKED
@@ -276,6 +278,13 @@ def GetCellAdjacentBombCount(xColumn, yRow):
             if (all(validCoordinates) and staticBoard[y][x] == StaticBoardCellContent.BOMB):
                 adjBombCount += 1
     return adjBombCount
+
+def IsGameEnd(exploded, mines, correctlyFlaggedMines):
+    if(exploded):
+        AppendMessage("You blew up a mine. Oops. GAME OVER")
+        return True
+    elif(mines == correctlyFlaggedMines)
+    
 
 ##### VISUAL MANAGEMENT #####
 
