@@ -61,7 +61,7 @@ def main():
     while(endGame == False):
         lastAction, lastCoordinates = PromptUserAction()
         if(lastAction == LastAction.UNKNOWN):
-            AppendMessage("Error: Unknown action, try again")
+            AppendMessage("Error: Invalid action, try again")
         elif(lastAction == LastAction.FLAGGED):
             AppendMessage(f'Last Action: Flagged cell at ({lastCoordinates[0]+1}, {lastCoordinates[1]+1})')
             flagScore += FlagCell(*lastCoordinates)
@@ -183,9 +183,10 @@ def PromptUserAction():
     # Need to account for -1 offset between user coordinates vs. list indexing
     x, y = int(coordinates[0])-1, int(coordinates[1])-1
     
-    if(IsValidCoordinates(x,y)):
-        return action, x, y
+    if(IsValidCoordinates(x, y)):
+        return action, (x,y)
     else:
+        AppendMessage(f'Coordinates ({x+1}, {y+1}) are out of range!')
         return LastAction.UNKNOWN, (None,None)
     
 def RevealCell(xColumn, yRow):
@@ -266,7 +267,7 @@ def GetCellAdjacentBombCount(xColumn, yRow):
     for y in range(yRow-1, yRow+2):
         for x in range(xColumn-1, xColumn+2):
             
-            if (all(IsValidCoordinates(x,y)) and staticBoard[y][x] == StaticBoardCellContent.BOMB):
+            if (IsValidCoordinates(x,y) and staticBoard[y][x] == StaticBoardCellContent.BOMB):
                 adjBombCount += 1
     return adjBombCount
 
